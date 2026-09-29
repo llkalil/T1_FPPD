@@ -245,9 +245,50 @@ s.append(cp("A medium (1 vCPU, GOMAXPROCS=1) repetiu o mesmo experimento (5 exec
             "<b>A V1 travou nas 30 execuções também na medium</b>: o deadlock é lógico e não depende de núcleos. "
             f"<b>A V3 foi ~17–18% mais rápida na medium</b> com N=48 e 96 (e ~4% mais lenta com N=5) ({M[('V3',96)]['total_ms_media']} ms contra {x('V3',96,'total_ms_media')} ms com N=96), "
             f"com espera média menor ({M[('V3',96)]['espera_media_ms']} contra {x('V3',96,'espera_media_ms')} ms), desvio-padrão quase zero ({M[('V3',96)]['total_ms_dp']} ms contra {x('V3',96,'total_ms_dp')} ms) "
-            f"e concorrência máxima de {M[('V3',96)]['max_comendo']} filósofos (teto 48). Hipótese, não verificada: com um só P, os timers acordam os filósofos em lotes alinhados "
+            f"e concorrência máxima de {M[('V3',96)]['max_comendo']} filósofos (teto 48). Confirmado na seção seguinte (a mesma 16xlarge com GOMAXPROCS=1 reproduz a medium): com um só P, os timers acordam os filósofos em lotes alinhados "
             "e há menos migração/jitter entre threads; na 16xlarge, o escalonamento em 64 threads adiciona atrasos (mais variação). "
             "Conclusão: para esta carga, mais cores <b>não</b> melhoram o desempenho; a estrutura de sincronização é o fator dominante (V2 → V3 = 19–37×), e um núcleo basta."))
+import statistics as _st
+G = {}
+for r in csv.DictReader((D / "gomaxprocs" / "gmp.csv").open(encoding="utf-8")):
+    G.setdefault((r["versao"], int(r["n"]), int(r["gomaxprocs"])), []).append(r)
+GM = [1, 2, 4, 8, 16, 64]
+def gstat(v, n, g, k):
+    xs = [float(r[k]) for r in G[(v, n, g)]]
+    return _st.mean(xs), (_st.stdev(xs) if len(xs) > 1 else 0.0)
+figg, gx = plt.subplots(1, 2, figsize=(10.5, 3.2))
+for n, c in [(48, "#1f77b4"), (96, "#2ca02c")]:
+    for a, k, ttl in [(gx[0], "total_ms", "V3 — tempo total (ms)"), (gx[1], "espera_media_ms", "V3 — espera média (ms)")]:
+        m = [gstat("V3", n, g, k)[0] for g in GM]; e = [gstat("V3", n, g, k)[1] for g in GM]
+        a.errorbar(range(len(GM)), m, yerr=e, marker="o", ms=4, capsize=3, color=c, label=f"N={n}")
+        a.set_title(ttl, fontsize=8.5); a.set_xticks(range(len(GM))); a.set_xticklabels([str(g) for g in GM], fontsize=8)
+        a.set_xlabel("GOMAXPROCS (nº de cores usados pelo runtime)", fontsize=8); a.tick_params(axis="y", labelsize=8)
+        a.grid(alpha=.3); a.legend(fontsize=7)
+gx[0].set_ylim(0, 620); gx[1].set_ylim(0, 4.5)
+figg.tight_layout(); figg.savefig(D / "graficos_gmp.png", dpi=170)
+s.append(Paragraph("Isolando o efeito dos cores: GOMAXPROCS na mesma c8g.16xlarge", H2))
+s.append(cp("Para separar “número de cores” de “máquina diferente”, repetimos a V3 (N=48 e 96, 5 execuções) e a V2 (N=48, 3 execuções) na <b>mesma</b> 16xlarge variando "
+            "<font name='M'>GOMAXPROCS</font> (1, 2, 4, 8, 16, 64). Script: <font name='M'>filosofos/run_gmp.sh</font>; dados: <font name='M'>gomaxprocs/gmp.csv</font>."))
+s.append(Image(str(D / "graficos_gmp.png"), width=17.4 * cm, height=17.4 * cm * 3.2 / 10.5))
+s.append(Paragraph("Figura 3 — V3: tempo total e espera média × GOMAXPROCS (média ± desvio-padrão).", SM))
+grows = [["GOMAXPROCS", "V3 N=48\ntotal (ms) ± dp", "V3 N=48\nespera (ms)", "V3 N=96\ntotal (ms) ± dp", "V3 N=96\nespera (ms)", "V2 N=48\ntotal (ms)"]]
+for g in GM:
+    a, b = gstat("V3", 48, g, "total_ms"), gstat("V3", 96, g, "total_ms")
+    grows.append([g, f"{a[0]:.1f} ± {a[1]:.1f}", f"{gstat('V3',48,g,'espera_media_ms')[0]:.2f}", f"{b[0]:.1f} ± {b[1]:.1f}",
+                  f"{gstat('V3',96,g,'espera_media_ms')[0]:.2f}", f"{gstat('V2',48,g,'total_ms')[0]:.0f}"])
+gt = Table(grows, repeatRows=1, colWidths=[2.4 * cm, 3.3 * cm, 2.6 * cm, 3.3 * cm, 2.6 * cm, 2.6 * cm])
+gt.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), "A", 8), ("FONT", (0, 0), (-1, 0), "A-B", 8),
+                        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#dfe6f3")), ("GRID", (0, 0), (-1, -1), .3, colors.grey),
+                        ("ALIGN", (0, 0), (-1, -1), "CENTER"), ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+                        ("TOPPADDING", (0, 0), (-1, -1), 1.5), ("BOTTOMPADDING", (0, 0), (-1, -1), 1.5)]))
+s.append(gt)
+s.append(Spacer(1, 4))
+s.append(cp(f"<b>Hipótese confirmada:</b> com GOMAXPROCS=1 a 16xlarge dá {gstat('V3',48,1,'total_ms')[0]:.1f} ms (dp {gstat('V3',48,1,'total_ms')[1]:.1f}) com N=48, "
+            f"praticamente igual à c8g.medium ({M[('V3',48)]['total_ms_media']} ms). Portanto a divergência <b>não vem da máquina</b>, e sim do número de Ps (processadores lógicos do escalonador do Go). "
+            f"Já com 2 Ps o tempo sobe para {gstat('V3',48,2,'total_ms')[0]:.0f} ms e, de 4 até 64, fica num patamar de ~510–540 ms com desvio de 20–45 ms: <b>mais cores não ajudam, passam a atrapalhar</b> "
+            "(mais variação e mais espera). Com um só P os timers e o escalonamento são determinísticos e os filósofos ficam em fase; com vários Ps os acordares se espalham e a fase muda a cada execução, "
+            "aumentando a disputa entre vizinhos. A causa exata dentro do escalonador não foi investigada (isso exigiria <i>tracing</i>). "
+            f"A V2 é insensível: {gstat('V2',48,1,'total_ms')[0]:.0f} ms com 1 P e {gstat('V2',48,64,'total_ms')[0]:.0f} ms com 64 (o mutex global já serializa)."))
 s.append(Paragraph("Ressalvas", H2))
 s.append(cb("O enunciado usa N=5; N=48 e 96 foram acrescentados para evidenciar a escala. Em N=5 o ganho da V3 sobre a V2 é modesto (1,9×) e a V3 é limitada a 2 comensais."))
 s.append(cb("Pensar/comer são simulados com <i>sleep</i>; com trabalho real de CPU, o número de cores passaria a limitar a V3. Desvios-padrão baixos (≤ 31 ms) indicam medidas estáveis; 5 execuções por caso."))
@@ -283,6 +324,12 @@ for name in ["c8g.16xlarge", "c8g.medium"]:
         f = l.split(",")
         lines.append(",".join(f[:7] + [cyc(f[7])]))
     s.append(Preformatted("\n".join(lines), CODE))
+s.append(Paragraph("gomaxprocs (gomaxprocs / gmp.csv)", H2))
+glines = ["gomaxprocs,versao,n,status,total_ms,espera_media_ms,espera_max_ms,max_comendo,ciclos"]
+for l in (D / "gomaxprocs" / "gmp.csv").read_text(encoding="utf-8").splitlines()[1:]:
+    f = l.split(",")
+    glines.append(",".join(f[:8] + [cyc(f[8])]))
+s.append(Preformatted("\n".join(glines), CODE))
 s.append(PageBreak())
 s.append(Paragraph("Apêndice C — Evidências de deadlock (V1) em N=48 e N=96", H1))
 for n in [48, 96]:

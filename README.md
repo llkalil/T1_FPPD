@@ -12,10 +12,11 @@ Trabalho 1 de Fundamentos de Programação Paralela e Distribuída (PUCRS). Comp
 ## Estrutura
 
 ```
-filosofos/            código (main.go, go.mod) e run.sh (bateria de experimentos)
+filosofos/            código (main.go, go.mod), run.sh (bateria) e run_gmp.sh (varredura de GOMAXPROCS)
 resultados/
   c8g.16xlarge/       dados crus (results.csv, console.txt, env.txt, deadlock_n*.txt) e parseados (summary.csv/.md)
   c8g.medium/         mesma bateria na c8g.medium (1 vCPU), para comparar com a 16xlarge
+  gomaxprocs/         V2/V3 na 16xlarge com GOMAXPROCS=1..64 (gmp.csv)
   c8g.medium-sa-east-1-teste/   log do teste de validação inicial
   parse.py            results.csv -> summary.csv/.md
   gen_report.py       gera relatorio_t1.pdf
