@@ -1,0 +1,56 @@
+V1 n=48 status=DEADLOCK
+  tempo total:        5100.84 ms
+  espera média:       0.000 ms
+  maior espera:       0.000 ms
+  máx. comendo ao mesmo tempo: 0
+  ciclos por filósofo: 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+
+== Evidência de deadlock ==
+filósofo 0: tem garfo 0, ESPERA garfo 1 (em posse do filósofo 1) | ciclos=0
+filósofo 1: tem garfo 1, ESPERA garfo 2 (em posse do filósofo 2) | ciclos=0
+filósofo 2: tem garfo 2, ESPERA garfo 3 (em posse do filósofo 3) | ciclos=0
+filósofo 3: tem garfo 3, ESPERA garfo 4 (em posse do filósofo 4) | ciclos=0
+filósofo 4: tem garfo 4, ESPERA garfo 5 (em posse do filósofo 5) | ciclos=0
+filósofo 5: tem garfo 5, ESPERA garfo 6 (em posse do filósofo 6) | ciclos=0
+filósofo 6: tem garfo 6, ESPERA garfo 7 (em posse do filósofo 7) | ciclos=0
+filósofo 7: tem garfo 7, ESPERA garfo 8 (em posse do filósofo 8) | ciclos=0
+filósofo 8: tem garfo 8, ESPERA garfo 9 (em posse do filósofo 9) | ciclos=0
+filósofo 9: tem garfo 9, ESPERA garfo 10 (em posse do filósofo 10) | ciclos=0
+filósofo 10: tem garfo 10, ESPERA garfo 11 (em posse do filósofo 11) | ciclos=0
+filósofo 11: tem garfo 11, ESPERA garfo 12 (em posse do filósofo 12) | ciclos=0
+filósofo 12: tem garfo 12, ESPERA garfo 13 (em posse do filósofo 13) | ciclos=0
+filósofo 13: tem garfo 13, ESPERA garfo 14 (em posse do filósofo 14) | ciclos=0
+filósofo 14: tem garfo 14, ESPERA garfo 15 (em posse do filósofo 15) | ciclos=0
+filósofo 15: tem garfo 15, ESPERA garfo 16 (em posse do filósofo 16) | ciclos=0
+filósofo 16: tem garfo 16, ESPERA garfo 17 (em posse do filósofo 17) | ciclos=0
+filósofo 17: tem garfo 17, ESPERA garfo 18 (em posse do filósofo 18) | ciclos=0
+filósofo 18: tem garfo 18, ESPERA garfo 19 (em posse do filósofo 19) | ciclos=0
+filósofo 19: tem garfo 19, ESPERA garfo 20 (em posse do filósofo 20) | ciclos=0
+filósofo 20: tem garfo 20, ESPERA garfo 21 (em posse do filósofo 21) | ciclos=0
+filósofo 21: tem garfo 21, ESPERA garfo 22 (em posse do filósofo 22) | ciclos=0
+filósofo 22: tem garfo 22, ESPERA garfo 23 (em posse do filósofo 23) | ciclos=0
+filósofo 23: tem garfo 23, ESPERA garfo 24 (em posse do filósofo 24) | ciclos=0
+filósofo 24: tem garfo 24, ESPERA garfo 25 (em posse do filósofo 25) | ciclos=0
+filósofo 25: tem garfo 25, ESPERA garfo 26 (em posse do filósofo 26) | ciclos=0
+filósofo 26: tem garfo 26, ESPERA garfo 27 (em posse do filósofo 27) | ciclos=0
+filósofo 27: tem garfo 27, ESPERA garfo 28 (em posse do filósofo 28) | ciclos=0
+filósofo 28: tem garfo 28, ESPERA garfo 29 (em posse do filósofo 29) | ciclos=0
+filósofo 29: tem garfo 29, ESPERA garfo 30 (em posse do filósofo 30) | ciclos=0
+filósofo 30: tem garfo 30, ESPERA garfo 31 (em posse do filósofo 31) | ciclos=0
+filósofo 31: tem garfo 31, ESPERA garfo 32 (em posse do filósofo 32) | ciclos=0
+filósofo 32: tem garfo 32, ESPERA garfo 33 (em posse do filósofo 33) | ciclos=0
+filósofo 33: tem garfo 33, ESPERA garfo 34 (em posse do filósofo 34) | ciclos=0
+filósofo 34: tem garfo 34, ESPERA garfo 35 (em posse do filósofo 35) | ciclos=0
+filósofo 35: tem garfo 35, ESPERA garfo 36 (em posse do filósofo 36) | ciclos=0
+filósofo 36: tem garfo 36, ESPERA garfo 37 (em posse do filósofo 37) | ciclos=0
+filósofo 37: tem garfo 37, ESPERA garfo 38 (em posse do filósofo 38) | ciclos=0
+filósofo 38: tem garfo 38, ESPERA garfo 39 (em posse do filósofo 39) | ciclos=0
+filósofo 39: tem garfo 39, ESPERA garfo 40 (em posse do filósofo 40) | ciclos=0
+filósofo 40: tem garfo 40, ESPERA garfo 41 (em posse do filósofo 41) | ciclos=0
+filósofo 41: tem garfo 41, ESPERA garfo 42 (em posse do filósofo 42) | ciclos=0
+filósofo 42: tem garfo 42, ESPERA garfo 43 (em posse do filósofo 43) | ciclos=0
+filósofo 43: tem garfo 43, ESPERA garfo 44 (em posse do filósofo 44) | ciclos=0
+filósofo 44: tem garfo 44, ESPERA garfo 45 (em posse do filósofo 45) | ciclos=0
+filósofo 45: tem garfo 45, ESPERA garfo 46 (em posse do filósofo 46) | ciclos=0
+filósofo 46: tem garfo 46, ESPERA garfo 47 (em posse do filósofo 47) | ciclos=0
+filósofo 47: tem garfo 47, ESPERA garfo 0 (em posse do filósofo 0) | ciclos=0

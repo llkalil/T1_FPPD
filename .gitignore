@@ -1,0 +1,23 @@
+# binários de build
+filosofos/filosofos
+filosofos/filosofos.exe
+*.exe
+*.test
+
+# artefatos gerados
+resultados/graficos.png
+resultados/r*.png
+resultados/p*.png
+__pycache__/
+
+# segredos e chaves (nunca versionar)
+*.pem
+*.key
+.env
+.env.*
+
+# material da disciplina e config local
+t1-v1.pdf
+.claude/
+.idea/
+.vscode/

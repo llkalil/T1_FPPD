@@ -1,0 +1,13 @@
+V1 n=5 status=DEADLOCK
+  tempo total:        5100.52 ms
+  espera média:       0.000 ms
+  maior espera:       0.000 ms
+  máx. comendo ao mesmo tempo: 0
+  ciclos por filósofo: 0 0 0 0 0
+
+== Evidência de deadlock ==
+filósofo 0: tem garfo 0, ESPERA garfo 1 (em posse do filósofo 1) | ciclos=0
+filósofo 1: tem garfo 1, ESPERA garfo 2 (em posse do filósofo 2) | ciclos=0
+filósofo 2: tem garfo 2, ESPERA garfo 3 (em posse do filósofo 3) | ciclos=0
+filósofo 3: tem garfo 3, ESPERA garfo 4 (em posse do filósofo 4) | ciclos=0
+filósofo 4: tem garfo 4, ESPERA garfo 0 (em posse do filósofo 0) | ciclos=0
