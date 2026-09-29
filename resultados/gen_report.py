@@ -80,7 +80,7 @@ def ratio(a, b, n): return float(x(a, n, "total_ms_media")) / float(x(b, n, "tot
 # ---------- página 1 ----------
 s = []
 s.append(Paragraph("Trabalho 1 — Concorrência e Sincronização: O Problema dos Filósofos Jantando", H1))
-s.append(p("<b>Grupo:</b> [NOME 1 — matrícula] · [NOME 2 — matrícula] · [NOME 3 — matrícula] &nbsp;|&nbsp; "
+s.append(p("<b>Grupo:</b> Lorenzo Kalil · Mateus Huster · [3º integrante a definir] &nbsp;|&nbsp; "
            "<b>Disciplina:</b> Fundamentos de Programação Paralela e Distribuída (PUCRS) &nbsp;|&nbsp; "
            "<b>Código-fonte (Git):</b> https://github.com/llkalil/T1_FPPD"))
 s.append(Paragraph("Soluções, mecanismos de sincronização e como são implementados em Go", H2))
