@@ -51,6 +51,25 @@ fig.legend(h, l, loc="lower center", ncol=3, fontsize=8, frameon=False)
 fig.tight_layout(rect=(0, 0.06, 1, 1))
 fig.savefig(D / "graficos.png", dpi=170)
 
+# figura 2: comparação de vCPUs (V3, onde há diferença; V0/V2 são idênticas)
+MS_ = {(r["versao"], int(r["n"])): r for r in csv.DictReader((D / "c8g.medium" / "summary.csv").open(encoding="utf-8"))}
+fig2, bx = plt.subplots(1, 3, figsize=(10.5, 3.2))
+for a, key, ttl, fmt in [(bx[0], "total_ms_media", "V3 — tempo total (ms)", "{:.0f}"), (bx[1], "espera_media_ms", "V3 — espera média (ms)", "{:.1f}"),
+                         (bx[2], "max_comendo", "V3 — máx. comendo juntos", "{:.0f}")]:
+    for i, (lbl, src, c) in enumerate([("c8g.medium (1 vCPU)", MS_, "#1f77b4"), ("c8g.16xlarge (64 vCPUs)", S, "#ff7f0e")]):
+        xs = [j + (i - .5) * .36 for j in range(3)]
+        ys = [float(src[("V3", n)][key]) for n in NS]
+        a.bar(xs, ys, .36, color=c, label=lbl)
+        for xx, yy in zip(xs, ys):
+            a.text(xx, yy, fmt.format(yy), ha="center", va="bottom", fontsize=6.5)
+    a.set_title(ttl, fontsize=8.5); a.set_xticks(range(3)); a.set_xticklabels([f"N={n}" for n in NS], fontsize=8)
+    a.tick_params(axis="y", labelsize=8); a.grid(axis="y", alpha=.3); a.set_axisbelow(True)
+    a.margins(y=.15)
+h2_, l2_ = bx[0].get_legend_handles_labels()
+fig2.legend(h2_, l2_, loc="lower center", ncol=2, fontsize=8, frameon=False)
+fig2.tight_layout(rect=(0, 0.07, 1, 1))
+fig2.savefig(D / "graficos_vcpus.png", dpi=170)
+
 # ---------- estilos ----------
 def st(name, size, lead, **kw):
     return ParagraphStyle(name, fontName=kw.pop("fontName", "A"), fontSize=size, leading=lead, **kw)
@@ -128,7 +147,7 @@ s.append(Paragraph("Análise comparativa (resumo)", H2))
 s.append(p(f"V3 é a melhor: com N=96 leva {float(x('V3',96,'total_ms_media'))/1000:.2f} s contra {float(x('V2',96,'total_ms_media'))/1000:.1f} s da V2 "
            f"({ratio('V2','V3',96):.0f}× mais lenta) e {float(x('V0',96,'total_ms_media'))/1000:.1f} s da V0 ({ratio('V0','V3',96):.0f}×), com até {x('V3',96,'max_comendo')} filósofos comendo em paralelo. "
            f"V2 é correta, mas só ganha ~{ratio('V0','V2',96):.1f}× sobre a V0 (sobrepõe apenas o pensar) e a espera média cresce com N ({x('V2',5,'espera_media_ms')} → {x('V2',96,'espera_media_ms')} ms). "
-           "V1 travou em 30 de 30 execuções."))
+           "V1 travou em 30 de 30 execuções. Repetido na c8g.medium (1 vCPU), V0/V2/V1 deram o mesmo resultado e a V3 foi 17–18% mais rápida com N≥48: o número de vCPUs quase não importa (página 3)."))
 s.append(PageBreak())
 
 # ---------- página 2 ----------
@@ -211,6 +230,9 @@ for v in ["V0", "V2", "V3"]:
     for n in NS:
         a, b = M[(v, n)], S[(v, n)]
         cmp_rows.append([v, n, a["total_ms_media"], b["total_ms_media"], f"{a['espera_media_ms']} / {b['espera_media_ms']}", f"{a['max_comendo']} / {b['max_comendo']}"])
+s.append(Image(str(D / "graficos_vcpus.png"), width=17.4 * cm, height=17.4 * cm * 3.2 / 10.5))
+s.append(Paragraph("Figura 2 — Efeito do número de vCPUs na V3 (V0, V2 e V1 não mudam: ver tabela). Barras: média de 5 execuções.", SM))
+s.append(Spacer(1, 4))
 ct = Table(cmp_rows, repeatRows=1, colWidths=[1.5 * cm, 1 * cm, 2.6 * cm, 2.6 * cm, 4.6 * cm, 3.6 * cm])
 ct.setStyle(TableStyle([("FONT", (0, 0), (-1, -1), "A", 8), ("FONT", (0, 0), (-1, 0), "A-B", 8),
                         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#dfe6f3")), ("GRID", (0, 0), (-1, -1), .3, colors.grey),
@@ -231,6 +253,49 @@ s.append(cb("O enunciado usa N=5; N=48 e 96 foram acrescentados para evidenciar 
 s.append(cb("Pensar/comer são simulados com <i>sleep</i>; com trabalho real de CPU, o número de cores passaria a limitar a V3. Desvios-padrão baixos (≤ 31 ms) indicam medidas estáveis; 5 execuções por caso."))
 s.append(cb("Medidas de espera incluem a espera pelo mutex global (V2) e pelos dois garfos (V1/V3). A V1 é analisada à parte: as 30 execuções terminaram em deadlock, com evidência em <font name='M'>deadlock_n5/48/96.txt</font>."))
 s.append(cb("As “capturas” são a saída textual real do terminal; código completo no repositório indicado na página 1."))
+
+# ---------- apêndices ----------
+import textwrap
+CODE = ParagraphStyle("code", parent=MONO, fontSize=6, leading=7.2)
+def listing(text, width=150):
+    out = []
+    for l in text.expandtabs(4).splitlines():
+        out += textwrap.wrap(l, width, subsequent_indent="      ", drop_whitespace=False, replace_whitespace=False) or [""]
+    return Preformatted("\n".join(out), CODE)
+
+def cyc(c):  # resume a coluna de ciclos
+    v = c.split(";")
+    return f"{v[0]}x{len(v)}" if len(set(v)) == 1 else c
+
+s.append(PageBreak())
+s.append(Paragraph("Apêndice A — Ambiente completo", H1))
+for name in ["c8g.16xlarge", "c8g.medium"]:
+    s.append(Paragraph(name, H2))
+    s.append(box((D / name / "env.txt").read_text(encoding="utf-8").strip()))
+s.append(Paragraph("Apêndice B — Todas as execuções (dados crus)", H1))
+s.append(Paragraph("Colunas: versão, N, status, total (ms), espera média (ms), maior espera (ms), máx. comendo, ciclos por filósofo "
+                   "(“20x96” = todos os 96 filósofos com 20 ciclos; na V1 os ciclos são os do momento do deadlock). Arquivos originais: "
+                   "<font name='M'>results.csv</font> de cada pasta.", SM))
+for name in ["c8g.16xlarge", "c8g.medium"]:
+    s.append(Paragraph(f"{name} ({name} / results.csv)", H2))
+    lines = ["versao,n,status,total_ms,espera_media_ms,espera_max_ms,max_comendo,ciclos"]
+    for l in (D / name / "results.csv").read_text(encoding="utf-8").splitlines()[1:]:
+        f = l.split(",")
+        lines.append(",".join(f[:7] + [cyc(f[7])]))
+    s.append(Preformatted("\n".join(lines), CODE))
+s.append(PageBreak())
+s.append(Paragraph("Apêndice C — Evidências de deadlock (V1) em N=48 e N=96", H1))
+for n in [48, 96]:
+    txt = (R / f"deadlock_n{n}.txt").read_text(encoding="utf-8").strip().splitlines()
+    head = [l for l in txt if not l.startswith("filósofo")]
+    ph = [l for l in txt if l.startswith("filósofo")]
+    s.append(Paragraph(f"N={n} (c8g.16xlarge) — {len(ph)} filósofos, todos com 1 garfo e esperando o do vizinho; primeiros 6 e último:", H2))
+    s.append(box("\n".join(head + ph[:6] + ["..."] + ph[-1:])))
+s.append(Paragraph("Apêndice D — Código-fonte", H1))
+s.append(Paragraph("Repositório: https://github.com/llkalil/T1_FPPD", B))
+for f in ["filosofos/main.go", "filosofos/run.sh", "filosofos/go.mod"]:
+    s.append(Paragraph(f, H2))
+    s.append(listing((D.parent / f).read_text(encoding="utf-8")))
 
 def foot(c, d):
     c.saveState(); c.setFont("A", 7); c.setFillColor(colors.grey)

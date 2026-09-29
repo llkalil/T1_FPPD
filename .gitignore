@@ -5,7 +5,7 @@ filosofos/filosofos.exe
 *.test
 
 # artefatos gerados
-resultados/graficos.png
+resultados/graficos*.png
 resultados/r*.png
 resultados/p*.png
 __pycache__/
