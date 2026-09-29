@@ -247,7 +247,7 @@ s.append(cp("A medium (1 vCPU, GOMAXPROCS=1) repetiu o mesmo experimento (5 exec
             f"com espera média menor ({M[('V3',96)]['espera_media_ms']} contra {x('V3',96,'espera_media_ms')} ms), desvio-padrão quase zero ({M[('V3',96)]['total_ms_dp']} ms contra {x('V3',96,'total_ms_dp')} ms) "
             f"e concorrência máxima de {M[('V3',96)]['max_comendo']} filósofos (teto 48). Confirmado na seção seguinte (a mesma 16xlarge com GOMAXPROCS=1 reproduz a medium): com um só P, os timers acordam os filósofos em lotes alinhados "
             "e há menos migração/jitter entre threads; na 16xlarge, o escalonamento em 64 threads adiciona atrasos (mais variação). "
-            "Conclusão: para esta carga, mais cores <b>não</b> melhoram o desempenho; a estrutura de sincronização é o fator dominante (V2 → V3 = 19–37×), e um núcleo basta."))
+            "Conclusão: para esta carga, mais cores <b>não</b> melhoram o desempenho (acima de 1 P há uma piora única de ~15–20% e depois um patamar estável); a estrutura de sincronização é o fator dominante (V2 → V3 = 19–37×), e um núcleo basta."))
 import statistics as _st
 G = {}
 for r in csv.DictReader((D / "gomaxprocs" / "gmp.csv").open(encoding="utf-8")):
@@ -285,8 +285,8 @@ s.append(gt)
 s.append(Spacer(1, 4))
 s.append(cp(f"<b>Hipótese confirmada:</b> com GOMAXPROCS=1 a 16xlarge dá {gstat('V3',48,1,'total_ms')[0]:.1f} ms (dp {gstat('V3',48,1,'total_ms')[1]:.1f}) com N=48, "
             f"praticamente igual à c8g.medium ({M[('V3',48)]['total_ms_media']} ms). Portanto a divergência <b>não vem da máquina</b>, e sim do número de Ps (processadores lógicos do escalonador do Go). "
-            f"Já com 2 Ps o tempo sobe para {gstat('V3',48,2,'total_ms')[0]:.0f} ms e, de 4 até 64, fica num patamar de ~510–540 ms com desvio de 20–45 ms: <b>mais cores não ajudam, passam a atrapalhar</b> "
-            "(mais variação e mais espera). Com um só P os timers e o escalonamento são determinísticos e os filósofos ficam em fase; com vários Ps os acordares se espalham e a fase muda a cada execução, "
+            f"Já com 2 Ps o tempo sobe para {gstat('V3',48,2,'total_ms')[0]:.0f} ms e, de 4 até 64, fica num patamar de ~490–540 ms com desvio de 5–45 ms: <b>acima de 1 P o desempenho piora (~15–20%) para um patamar estável, sem melhora adicional com mais cores</b>. "
+            "As diferenças entre 4, 8, 16 e 64 Ps cabem no ruído de 5 execuções e não indicam piora progressiva. Com um só P os timers e o escalonamento são determinísticos e os filósofos ficam em fase; com vários Ps os acordares se espalham e a fase muda a cada execução, "
             "aumentando a disputa entre vizinhos. A causa exata dentro do escalonador não foi investigada (isso exigiria <i>tracing</i>). "
             f"A V2 é insensível: {gstat('V2',48,1,'total_ms')[0]:.0f} ms com 1 P e {gstat('V2',48,64,'total_ms')[0]:.0f} ms com 64 (o mutex global já serializa)."))
 s.append(Paragraph("Ressalvas", H2))
