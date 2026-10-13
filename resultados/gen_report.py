@@ -109,21 +109,21 @@ s.append(p("Cinco (ou N) filósofos, um garfo entre cada par. O filósofo <i>i</
            "(10 ms cada), igual em todas as versões, e as métricas usam <font name='M'>sync/atomic</font> (contador de filósofos comendo, com máximo via CAS) "
            "e medição por filósofo do tempo entre o fim de pensar e a posse dos dois garfos. Um <i>watchdog</i> declara deadlock se nenhum ciclo "
            "termina por 5 s e imprime quem segura e quem espera cada garfo (o detector nativo do runtime não dispara porque há timers ativos)."))
-s.append(bl("<b>V0 — sequencial (baseline):</b> um filósofo por vez, sem goroutines nem garfos; o tempo esperado é N × 20 × (10+10) ms."))
+s.append(bl("<b>V0 — sequencial (baseline):</b> um filósofo por vez, sem goroutines nem garfos; o tempo esperado é N × 20 × (10+10) ms. Foi escrita junto com as demais versões no mesmo programa, com a mesma instrumentação de métricas, em vez de adaptar o código de referência do Moodle: assim o tempo medido sai do mesmo código e a comparação é direta."))
 s.append(bl("<b>V1 — deadlock:</b> todos pegam primeiro o garfo esquerdo e depois o direito, com pausa de 1 ms entre os dois "
             "(<font name='M'>-gap</font>, só nesta versão) para tornar o deadlock provável. Se todos seguram o esquerdo, ninguém avança."))
 s.append(bl("<b>V2 — sincronização excessiva:</b> um mutex global é adquirido antes dos garfos e só liberado depois de comer. "
             "Correta e sem deadlock, mas serializa a mesa inteira: só um filósofo come por vez, mesmo havendo garfos livres."))
-s.append(bl("<b>V3 — aprimorada:</b> <i>hierarquia de recursos</i>: cada filósofo pega sempre o garfo de menor índice primeiro. "
+s.append(bl("<b>V3 — aprimorada:</b> <i>hierarquia de recursos</i> [1]: cada filósofo pega sempre o garfo de menor índice primeiro. "
             "O último filósofo (N−1) inverte a ordem (garfo 0 antes do N−1), o que quebra a espera circular; vizinhos não conflitantes comem em paralelo."))
-s.append(Paragraph("V1: por que ocorre deadlock (as 4 condições de Coffman)", H2))
+s.append(Paragraph("V1: por que ocorre deadlock (as 4 condições de Coffman [2])", H2))
 s.append(p("<b>Exclusão mútua:</b> um garfo (Mutex) só tem um dono. <b>Segura-e-espera:</b> cada filósofo segura o garfo <i>i</i> e espera o <i>i+1</i>. "
            "<b>Ausência de preempção:</b> o Mutex não pode ser tomado à força. <b>Espera circular:</b> 0→1→2→3→4→0 (o filósofo <i>i</i> espera o garfo em posse do <i>i+1</i>). "
            "Com as quatro presentes o sistema trava: cada filósofo tem <b>1 garfo</b> (o esquerdo) e espera <b>1</b> (o direito, do vizinho); ver captura na página 2."))
 s.append(Paragraph("Como V2 e V3 evitam o deadlock; starvation", H2))
 s.append(p("<b>V2</b> nega <i>segura-e-espera/espera circular</i>: só quem tem o mutex global pede garfos, e como ninguém mais os segura eles sempre estão livres. "
            "<b>V3</b> nega a <i>espera circular</i>: ordenando os recursos, a cadeia de esperas é sempre crescente e não fecha um ciclo. "
-           "<b>Starvation:</b> em V2 e V3 o <font name='M'>sync.Mutex</font> do Go entra em modo de inanição após 1 ms de espera (entrega direta em FIFO ao mais antigo), "
+           "<b>Starvation:</b> em V2 e V3 o <font name='M'>sync.Mutex</font> do Go [4] entra em modo de inanição após 1 ms de espera (entrega direta em FIFO ao mais antigo), "
            "o que limita a espera de cada goroutine; observamos todos os filósofos concluindo os 20 ciclos em todas as execuções. Em teoria a V3 sozinha, "
            "com escalonamento arbitrário, não garante justiça; aqui ela vem do mutex."))
 s.append(Paragraph("Ambiente de execução", H2))
@@ -289,6 +289,18 @@ s.append(cp(f"<b>Hipótese confirmada:</b> com GOMAXPROCS=1 a 16xlarge dá {gsta
             "As diferenças entre 4, 8, 16 e 64 Ps cabem no ruído de 5 execuções e não indicam piora progressiva. Com um só P os timers e o escalonamento são determinísticos e os filósofos ficam em fase; com vários Ps os acordares se espalham e a fase muda a cada execução, "
             "aumentando a disputa entre vizinhos. A causa exata dentro do escalonador não foi investigada (isso exigiria <i>tracing</i>). "
             f"A V2 é insensível: {gstat('V2',48,1,'total_ms')[0]:.0f} ms com 1 P e {gstat('V2',48,64,'total_ms')[0]:.0f} ms com 64 (o mutex global já serializa)."))
+s.append(Paragraph("Referências", H2))
+REFS = [
+    "[1] DIJKSTRA, E. W. Hierarchical ordering of sequential processes. <i>Acta Informatica</i>, v. 1, n. 2, p. 115–138, 1971. (problema dos filósofos e ordenação de recursos, usada na V3)",
+    "[2] COFFMAN, E. G.; ELPHICK, M. J.; SHOSHANI, A. System deadlocks. <i>ACM Computing Surveys</i>, v. 3, n. 2, p. 67–78, 1971. (as quatro condições de deadlock)",
+    "[3] CHANDY, K. M.; MISRA, J. The drinking philosophers problem. <i>ACM TOPLAS</i>, v. 6, n. 4, p. 632–646, 1984. (solução distribuída alternativa, não implementada aqui)",
+    "[4] THE GO AUTHORS. Package sync (Mutex, WaitGroup) e fonte <font name='M'>sync/mutex.go</font>, que documenta o modo normal e o modo de inanição. https://pkg.go.dev/sync",
+    "[5] THE GO AUTHORS. Packages <font name='M'>sync/atomic</font>, <font name='M'>time</font> e <font name='M'>runtime</font> (GOMAXPROCS). https://pkg.go.dev",
+    "[6] TANENBAUM, A. S.; BOS, H. <i>Modern Operating Systems</i>. Pearson. (filósofos jantando e deadlock); SILBERSCHATZ, A.; GALVIN, P. B.; GAGNE, G. <i>Operating System Concepts</i>. Wiley.",
+    "[7] PUCRS. Trabalho 1 — Concorrência e Sincronização: o problema dos filósofos jantando (adaptação do Prof. De Rose). Enunciado e material de apoio (Moodle).",
+]
+for r_ in REFS:
+    s.append(Paragraph(r_, ParagraphStyle("ref", parent=B, fontSize=8.4, leading=10.4, leftIndent=14, firstLineIndent=-14, alignment=0)))
 s.append(Paragraph("Ressalvas", H2))
 s.append(cb("O enunciado usa N=5; N=48 e 96 foram acrescentados para evidenciar a escala. Em N=5 o ganho da V3 sobre a V2 é modesto (1,9×) e a V3 é limitada a 2 comensais."))
 s.append(cb("Pensar/comer são simulados com <i>sleep</i>; com trabalho real de CPU, o número de cores passaria a limitar a V3. Desvios-padrão baixos (≤ 31 ms) indicam medidas estáveis; 5 execuções por caso."))
