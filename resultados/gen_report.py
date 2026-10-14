@@ -109,12 +109,12 @@ s.append(p("Cinco (ou N) filósofos, um garfo entre cada par. O filósofo <i>i</
            "(10 ms cada), igual em todas as versões, e as métricas usam <font name='M'>sync/atomic</font> (contador de filósofos comendo, com máximo via CAS) "
            "e medição por filósofo do tempo entre o fim de pensar e a posse dos dois garfos. Um <i>watchdog</i> declara deadlock se nenhum ciclo "
            "termina por 5 s e imprime quem segura e quem espera cada garfo (o detector nativo do runtime não dispara porque há timers ativos)."))
-s.append(bl("<b>V0 — sequencial (baseline):</b> um filósofo por vez, sem goroutines nem garfos; o tempo esperado é N × 20 × (10+10) ms. Foi escrita junto com as demais versões no mesmo programa, com a mesma instrumentação de métricas, em vez de adaptar o código de referência do Moodle: assim o tempo medido sai do mesmo código e a comparação é direta."))
+s.append(bl("<b>V0 — sequencial (baseline):</b> um filósofo por vez, sem goroutines nem garfos; o tempo esperado é N × 20 × (10+10) ms. Baseada no exemplo <font name='M'>filo_seq.go</font> do Moodle [8] (mesma lógica sequencial e mesma fórmula de tempo esperado), adaptada para 20 ciclos, 10 ms, sem impressão e com as métricas do trabalho, no mesmo programa das demais versões; executa os ciclos de um filósofo por vez em vez de rodada a rodada (o tempo total é o mesmo). O tempo é medido com <font name='M'>time.Now/time.Since</font> [9]."))
 s.append(bl("<b>V1 — deadlock:</b> todos pegam primeiro o garfo esquerdo e depois o direito, com pausa de 1 ms entre os dois "
             "(<font name='M'>-gap</font>, só nesta versão) para tornar o deadlock provável. Se todos seguram o esquerdo, ninguém avança."))
 s.append(bl("<b>V2 — sincronização excessiva:</b> um mutex global é adquirido antes dos garfos e só liberado depois de comer. "
             "Correta e sem deadlock, mas serializa a mesa inteira: só um filósofo come por vez, mesmo havendo garfos livres."))
-s.append(bl("<b>V3 — aprimorada:</b> <i>hierarquia de recursos</i> [1]: cada filósofo pega sempre o garfo de menor índice primeiro. "
+s.append(bl("<b>V3 — aprimorada:</b> <i>hierarquia de recursos</i> [1, 10]: cada filósofo pega sempre o garfo de menor índice primeiro. "
             "O último filósofo (N−1) inverte a ordem (garfo 0 antes do N−1), o que quebra a espera circular; vizinhos não conflitantes comem em paralelo."))
 s.append(Paragraph("V1: por que ocorre deadlock (as 4 condições de Coffman [2])", H2))
 s.append(p("<b>Exclusão mútua:</b> um garfo (Mutex) só tem um dono. <b>Segura-e-espera:</b> cada filósofo segura o garfo <i>i</i> e espera o <i>i+1</i>. "
@@ -297,7 +297,11 @@ REFS = [
     "[4] THE GO AUTHORS. Package sync (Mutex, WaitGroup) e fonte <font name='M'>sync/mutex.go</font>, que documenta o modo normal e o modo de inanição. https://pkg.go.dev/sync",
     "[5] THE GO AUTHORS. Packages <font name='M'>sync/atomic</font>, <font name='M'>time</font> e <font name='M'>runtime</font> (GOMAXPROCS). https://pkg.go.dev",
     "[6] TANENBAUM, A. S.; BOS, H. <i>Modern Operating Systems</i>. Pearson. (filósofos jantando e deadlock); SILBERSCHATZ, A.; GALVIN, P. B.; GAGNE, G. <i>Operating System Concepts</i>. Wiley.",
-    "[7] PUCRS. Trabalho 1 — Concorrência e Sincronização: o problema dos filósofos jantando (adaptação do Prof. De Rose). Enunciado e material de apoio (Moodle).",
+    "[7] PUCRS. Trabalho 1 — Concorrência e Sincronização: o problema dos filósofos jantando (adaptação do Prof. De Rose). Enunciado.",
+    "[8] DE ROSE, C. <font name='M'>filo_seq.go</font> — Sequential Dining Philosophers (código de referência da V0, disponibilizado no Moodle; atualizado em 22/09/2026).",
+    "[9] SCHAAF, H. Measuring execution time in Go. <i>Coderwall</i>, atualizado em 04/12/2018. https://coderwall.com/p/cp5fya/measuring-execution-time-in-go (medição com <font name='M'>time.Now()</font> e <font name='M'>time.Since()</font>).",
+    "[10] MAYOROV, A. The Dining Philosophers problem and different ways of solving it. <i>ZeroBone</i>, 24/01/2021. https://zerobone.net/blog/cs/dining-philosophers-problem/ (semáforo n−1, filósofo “canhoto” e ordenação alternada; a V3 é um caso de ordenação de recursos, equivalente à ideia do filósofo assimétrico: o último filósofo inverte a ordem).",
+    "[11] BAELDUNG. Dining Philosophers Problem. <i>Baeldung on Computer Science</i>. https://www.baeldung.com/cs/dining-philosophers (material de apoio indicado no Moodle).",
 ]
 for r_ in REFS:
     s.append(Paragraph(r_, ParagraphStyle("ref", parent=B, fontSize=8.4, leading=10.4, leftIndent=14, firstLineIndent=-14, alignment=0)))
